@@ -89,6 +89,8 @@ To choose the roles, send them as a space-separated list of the roles you want. 
         def check(msg):
             if(msg.author == message.author and msg.channel == message.channel):
                 content = msg.content
+                if("cancel" in content):
+                    return True
                 for role in content.lower().split():
                     if(role not in valid):
                         #await message.channel.send("Unrecognized role: "+role)
@@ -135,7 +137,7 @@ To choose the roles, send them as a space-separated list of the roles you want. 
             embed.add_field(name="Description",value=WEREWOLF_GOALS[players[member]])
             await member.send(file=img,embed=embed)
             x += 1
-        player_static = player.copy()
+        player_static = players.copy()
         
         center = {"left":copy.pop(),"middle":copy.pop(),"right":copy.pop()}
         
@@ -151,11 +153,11 @@ To choose the roles, send them as a space-separated list of the roles you want. 
         werewolves = tuple(x for x in player_static if player_static[x] == "werewolf")
         #print(werewolves)
         if(len(werewolves) == 0):
-            print("No Werewolves")
+            print("No werewolves")
         elif(len(werewolves) == 1):
             await werewolves[0].send("There are no other Werewolves. Reply with `L`, `M`, or `R` to view a card from the center.")
             def check(msg):
-                if(msg.author == werewolves[0] and type(msg.channel) == Discord.DMChannel):
+                if(msg.author == werewolves[0] and type(msg.channel) == discord.DMChannel):
                     if(msg.content.lower() == "l"):
                         return True
                     elif(msg.content.lower() == "m"):
@@ -210,7 +212,7 @@ To choose the roles, send them as a space-separated list of the roles you want. 
             await seer[0].send("Whose card would you like to look at? Type the number of the player you want to view the current card of (i.e., type `1` to view Player 1. You can also choose to view 2 cards of the center (i.e., type `L M` to view the Left and Middle)."+text)
             
             def check(msg):
-                if(msg.author == seer[0] and type(msg.channel) == Discord.DMChannel):
+                if(msg.author == seer[0] and type(msg.channel) == discord.DMChannel):
                     try:
                         response = int(msg.content)
                         if(response <= len(players) and response >= 0):
@@ -259,7 +261,7 @@ To choose the roles, send them as a space-separated list of the roles you want. 
             text += "```"
             await robber[0].send("Whose card would you like to steal? Type the number of the player you want to steal the current card of (i.e., type `1` to steal Player 1."+text)
             def check(msg):
-                if(msg.author == robber[0] and type(msg.channel) == Discord.DMChannel):
+                if(msg.author == robber[0] and type(msg.channel) == discord.DMChannel):
                     try:
                         response = int(msg.content)
                         if(response <= len(players) and response >= 0):
@@ -292,7 +294,7 @@ To choose the roles, send them as a space-separated list of the roles you want. 
             text += "```"
             await robber[0].send("Select the 2 people whose cards you would like to swap? Type the numbers of the players you want to swap the current cards of (i.e., type `2 4` to swap Player 2 with Player 5."+text)
             def check(msg):
-                if(msg.author == troublemaker[0] and type(msg.channel) == Discord.DMChannel):
+                if(msg.author == troublemaker[0] and type(msg.channel) == discord.DMChannel):
                     numbers = msg.content.split()
                     if(len(numbers) == 2):
                         try:
@@ -318,7 +320,7 @@ To choose the roles, send them as a space-separated list of the roles you want. 
         elif(len(drunk) == 1):
             await drunk[0].send("Select a card from the middle you would like to swap with. You can choose from `L` for the left, `M` for the middle, and `R` for the Right.")
             def check(msg):
-                if(msg.author == drunk[0] and type(msg.channel) == Discord.DMChannel):
+                if(msg.author == drunk[0] and type(msg.channel) == discord.DMChannel):
                     if(msg.content.lower() in ["l","m","r"]):
                         return True
                     else:
@@ -340,10 +342,10 @@ To choose the roles, send them as a space-separated list of the roles you want. 
             await seer[0].send(file=img,embed=embed)
 
 
-    print("AFTER:")
-    for x in players:
-        print(str(x) + " : " + players[x])
-    print("MIDDLE:",center)
+        print("AFTER:")
+        for x in players:
+            print(str(x) + " : " + players[x])
+        print("MIDDLE:",center)
             
     #WHEN READY
     async def on_ready(self):

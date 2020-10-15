@@ -66,9 +66,8 @@ Werewolf
     async def play_werewolf(self,message):
         vc = message.author.voice.channel
         current_members = vc.members.copy()
-        #print(vc)
+
         num_of_players = len(current_members)
-        #num_of_players = 8
         num_of_roles = num_of_players + 3
 ##        if(num_of_players < 5 or num_of_players > 12):
 ##            await message.channel.send("You do not have the correct number of people to play Werewolf. You need 5-12 Players to play.")
@@ -93,7 +92,6 @@ To choose the roles, send them as a space-separated list of the roles you want. 
                     return True
                 for role in content.lower().split():
                     if(role not in valid):
-                        #await message.channel.send("Unrecognized role: "+role)
                         asyncio.get_event_loop().create_task(message.channel.send("Unrecognized role: "+role))
                         return False
                 if(len(content.lower().split()) != num_of_roles - 2):
@@ -184,7 +182,7 @@ To choose the roles, send them as a space-separated list of the roles you want. 
         if(len(minion) == 0):
             print("No minion")
         elif(len(minion) == 1):
-            await minion[0].send("There are no Werewolves among the players." if len(werewolves) == 0 else ("Your werewolf master(s) are:\n"+"\n".join([str(x) for x in werewolves])))
+            await minion[0].send("There are no Werewolves among the players currently." if len(werewolves) == 0 else ("Your werewolf master(s) are:\n"+"\n".join([str(x) for x in werewolves])))
 
         # MASON LOGIC
         masons = tuple(x for x in player_static if player_static[x] == "mason")
@@ -346,6 +344,77 @@ To choose the roles, send them as a space-separated list of the roles you want. 
         for x in players:
             print(str(x) + " : " + players[x])
         print("MIDDLE:",center)
+
+        await message.channel.send("Everyone, wake up! Discuss amongst yourselves, and figure out who, if anyone, is a Werewolf! You have 10 minutes.")
+        asyncio.sleep(9*60)
+        await message.channel.send("1 minute remaining!")
+        asyncio.sleep(1*60)
+
+        for player in players:
+            text = "\n```"
+            for x in mapping:
+                if(mapping[x] != player):
+                    text += str(x) + " : " + str(mapping[x]) + "\n"
+            text += "```"
+            await player.send("Vote for who you think is a Werewolf! Use the following numbers to vote."+text)
+        responses = {}
+        votes = {}
+        def check(msg):
+            if(msg.author in responses):
+                return False
+            try:
+                num = int(msg.content)
+                if(num <= len(players)-1 and num >= 1 and mapping[num] != msg.author):
+                    if(num not in votes):
+                        votes[num] = 0
+                    votes[num] += 1
+                    responses[msg.author] = num
+                    asyncio.get_event_loop().create_task(msg.author.send("Your vote has been cast!."))
+                else:
+                    asyncio.get_event_loop().create_task(msg.author.send("Invalid response."))
+                    return False
+            except:
+                asyncio.get_event_loop().create_task(msg.author.send("Invalid response."))
+                return False
+            if(len(responses) == len(players)):
+                return True
+            else:
+                return False
+        await self.wait_for("message",check=check)
+
+        max_count = 0
+        max_people = []
+        for x in votes:
+            if(max_count < votes[x]):
+                max_count = votes[x]
+                max_people.clear()
+            if(votes[x] == max_count):
+                max_people.append(mapping[x])
+        winner = "werewolf"
+        if(max_count == 1):
+            if("werewolf" not in players.values()):
+                winner = "villager"
+        else:
+            for death in max_people:
+                if(players[death] == "tanner"):
+                    winner = "tanner"
+                    break
+                elif(players[death] == "werewolf"):
+                    winner = "villager"
+                elif(players[death] == "hunter"):
+                    max_people.append(mapping[responses[death]])
+
+            if(winner = "werewolf"):
+                await message.channel.send("The Werewolves, "+str([x.mention for x in players if players[x] == "werewolf" or players[x] == "minion"]).replace("[","").replace("]","").replace(",","and")+", have won!")
+            elif(winner = "tanner"):
+                await message.channel.send("The Tanner, "+tanner[0].mention+", has won!")
+            else:
+                await message.channel.send("The villagers, "+str([x.mention for x in players if players[x] != "werewolf" and players[x] != "tanner"])
+
+        
+                    
+            
+        
             
     #WHEN READY
     async def on_ready(self):
